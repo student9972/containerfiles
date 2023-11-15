@@ -1,0 +1,43 @@
+
+# Install Docker Engine on EC2 Instance
+sudo amazon-linux-extras install docker / sudo yum install docker 
+sudo service docker start
+sudo usermod -a -G docker ec2-user
+
+LOGOUT and login
+
+# Install Samba Server For Copying files from windows to linux
+sudo yum install samba cifs-utils -y
+sudo systemctl start smb 
+mkdir /home/ec2-user/container
+chmod 777 /home/ec2-user/container
+vim /etc/samba/smb.conf
+(Insde the file make changes mentioned)
+workgroup = samba(change this to workroup)
+(Go to last line of the file and follow)
+[container]
+    comment = Container Image  
+    path = /home/ec2-user/container
+    write list = ec2-user
+    browseable = Yes
+Save & Exit 
+sudo systemctl restart smb
+sudo smbpasswd -a ec2-user (create a new passwd for smb login)
+(Lastly add smb to anywhere in the ec2 security group)
+(From Windows machine press win+r and type \\public_Ip_EC2)
+(This prompts for password of ec2-user, after copy the contents of container
+paste it into ec2 container directory)
+
+# Build Docker Image
+cd /home/ec2-user/container
+docker build -t innovativeacademy .
+docker images --filter reference=coursecontent
+
+# Run Container from Image
+docker run -t -i -p 80:80 imagename 
+
+# Upload Container to Dockerhub (optional)
+docker login --username=YOUR_USER
+docker images
+docker tag IMAGEID YOUR_USER/coursecontent
+docker push YOUR_USER/innovativeacademy:latest
